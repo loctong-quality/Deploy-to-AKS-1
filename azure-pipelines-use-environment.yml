@@ -41,7 +41,7 @@ stages:
   variables:
     acrsecret: acrloctongauth
     acrdevurl: 'acrloctong.azurecr.io'
-    # replicaNo: 3
+    replicaNo: 3
   jobs:
     - job: Deploy
     # - deployment: Deploy
@@ -66,20 +66,20 @@ stages:
           secretType: 'dockerRegistry'
           secretName: '$(acrsecret)' # lưu token acr vô secret
           dockerRegistryEndpoint: 'K8SExamplesACR'
-            # - task: replacetokens@3
-            #   displayName: Replace Tokens
-            #   inputs:
-            #     rootDirectory: '$(Pipeline.Workspace)/manifests/'
-            #     targetFiles: 'deployment.yml'
-            #     encoding: 'auto'
-            #     writeBOM: true
-            #     actionOnMissing: 'warn'
-            #     keepToken: false
-            #     tokenPrefix: '#'
-            #     tokenSuffix: '#'
-            #     useLegacyPattern: false
-            #     enableTransforms: false
-            #     enableTelemetry: true
+      - task: replacetokens@3 # dùng để pass variable vô file yml (eg: replicaNo)
+        displayName: Replace Tokens
+        inputs:
+          rootDirectory: '$(Pipeline.Workspace)/manifests/'
+          targetFiles: 'deployment.yml'
+          encoding: 'auto'
+          writeBOM: true
+          actionOnMissing: 'warn'
+          keepToken: false
+          tokenPrefix: '#'
+          tokenSuffix: '#'
+          useLegacyPattern: false
+          enableTransforms: false
+          enableTelemetry: true
       - task: KubernetesManifest@0
         inputs:
           action: 'deploy'
@@ -88,5 +88,5 @@ stages:
           manifests: |
             $(Pipeline.Workspace)/manifests/deployment.yml
             $(Pipeline.Workspace)/manifests/service.yml
-          containers: '$(acrdevurl)/$(imageRepo):$(tag)'
+          containers: '$(acrdevurl)/$(imageRepo):$(tag)' # sẽ ưu tiên lấy tag trong đây
           imagePullSecrets: '$(acrsecret)' # phải có ref tới cái này PODs mới donwload được images
