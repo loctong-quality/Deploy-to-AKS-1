@@ -66,7 +66,7 @@ stages:
           secretType: 'dockerRegistry'
           secretName: '$(acrsecret)' # lưu token acr vô secret
           dockerRegistryEndpoint: 'K8SExamplesACR'
-      - task: replacetokens@3 # dùng để pass variable vô file yml (eg: replicaNo)
+      - task: replacetokens@3 # dùng để pass variable vô file yml (eg: replicaNo -> #replicaNo#)
         displayName: Replace Tokens
         inputs:
           rootDirectory: '$(Pipeline.Workspace)/manifests/'
