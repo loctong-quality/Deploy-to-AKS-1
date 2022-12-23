@@ -1,7 +1,7 @@
 # Tham khao tu https://www.youtube.com/watch?v=4Oa5HneTuKs
 # Deploy to Azure Kubernetes (AKS) from Azure DevOps with Azure Pipelines | Build LIVE with Me
 trigger:
-- none
+- main
 
 resources:
 - repo: self
