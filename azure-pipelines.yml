@@ -30,4 +30,4 @@ stages:
         Dockerfile: '$(Build.SourcesDirectory)/app/Dockerfile'
         tags: |
           $(tag)
-          latest'
+          latest
