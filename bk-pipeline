@@ -3,7 +3,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- main
+- none
 
 resources:
 - repo: self
@@ -91,10 +91,4 @@ stages:
             $(Pipeline.Workspace)/manifests/deployment.yml
             $(Pipeline.Workspace)/manifests/service.yml
           #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
-                #imagePullSecrets: '$(acrsecret)'
-Footer
-© 2022 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
+          imagePullSecrets: '$(acrsecret)'
