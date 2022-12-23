@@ -1,7 +1,5 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
+# Tham khao tu https://www.youtube.com/watch?v=4Oa5HneTuKs
+# Deploy to Azure Kubernetes (AKS) from Azure DevOps with Azure Pipelines | Build LIVE with Me
 trigger:
 - none
 
@@ -21,19 +19,19 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
-    # - task: Docker@2
-    #   displayName: Build an image
-    #   inputs:
-    #     containerRegistry: 'K8SExamplesACR'
-    #     repository: '$(imageRepo)'
-    #     command: 'buildAndPush'
-    #     Dockerfile: '$(Build.SourcesDirectory)/app/Dockerfile'
-    #     tags: |
-    #       $(tag)
-    #       latest
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        containerRegistry: 'K8SExamplesACR' # tạo trước từ Services connection
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/app/Dockerfile'
+        tags: |
+          $(tag)
+          latest
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Pipeline.Workspace)/s/kubernetes'
+        targetPath: '$(Pipeline.Workspace)/s/kubernetes' # $(Pipeline.Workspace)/s/ đường dẫn mặc định để copy files/folders
         artifact: 'manifests'
         publishLocation: 'pipeline'
 
@@ -63,10 +61,10 @@ stages:
       - task: KubernetesManifest@0
         inputs:
           action: 'createSecret'
-          kubernetesServiceConnection: 'K8S_Example_cluster-default'
+          kubernetesServiceConnection: 'K8S_Example_cluster-default' # tạo kết nối đến aks cluster (lưu ý dùng kubeconfig file get từ local rồi copy lên)
           namespace: 'default'
           secretType: 'dockerRegistry'
-          secretName: '$(acrsecret)'
+          secretName: '$(acrsecret)' # lưu token acr vô secret
           dockerRegistryEndpoint: 'K8SExamplesACR'
             # - task: replacetokens@3
             #   displayName: Replace Tokens
@@ -91,4 +89,4 @@ stages:
             $(Pipeline.Workspace)/manifests/deployment.yml
             $(Pipeline.Workspace)/manifests/service.yml
           #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
-          imagePullSecrets: '$(acrsecret)'
+          imagePullSecrets: '$(acrsecret)' # phải có ref tới cái này PODs mới donwload được images
