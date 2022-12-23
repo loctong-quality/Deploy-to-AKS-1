@@ -45,28 +45,29 @@ stages:
     acrdevurl: 'acrloctong.azurecr.io'
     # replicaNo: 3
   jobs:
-    - deployment: Deploy
+    - job: Deploy
+    # - deployment: Deploy
       displayName: Deploy to AKS
       #environment: 'k8sdev.default'
       pool: 
         vmImage: ubuntu-latest
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-            - task: DownloadPipelineArtifact@2
-              inputs:
-                buildType: 'current'
-                artifactName: 'manifests'
-                targetPath: '$(Pipeline.Workspace)/manifests'
-            - task: KubernetesManifest@0
-              inputs:
-                action: 'createSecret'
-                kubernetesServiceConnection: 'K8S_Example_cluster-default'
-                namespace: 'default'
-                secretType: 'dockerRegistry'
-                secretName: '$(acrsecret)'
-                dockerRegistryEndpoint: 'K8SExamplesACR'
+      # strategy:
+      #   runOnce:
+      #     deploy:
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'manifests'
+          targetPath: '$(Pipeline.Workspace)/manifests'
+      - task: KubernetesManifest@0
+        inputs:
+          action: 'createSecret'
+          kubernetesServiceConnection: 'K8S_Example_cluster-default'
+          namespace: 'default'
+          secretType: 'dockerRegistry'
+          secretName: '$(acrsecret)'
+          dockerRegistryEndpoint: 'K8SExamplesACR'
             # - task: replacetokens@3
             #   displayName: Replace Tokens
             #   inputs:
@@ -81,13 +82,13 @@ stages:
             #     useLegacyPattern: false
             #     enableTransforms: false
             #     enableTelemetry: true
-            - task: KubernetesManifest@0
-              inputs:
-                action: 'deploy'
-                kubernetesServiceConnection: 'K8S_Example_cluster-default'
-                namespace: 'default'
-                manifests: |
-                  $(Pipeline.Workspace)/manifests/deployment.yml
-                  $(Pipeline.Workspace)/manifests/service.yml
-                #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
+      - task: KubernetesManifest@0
+        inputs:
+          action: 'deploy'
+          kubernetesServiceConnection: 'K8S_Example_cluster-default'
+          namespace: 'default'
+          manifests: |
+            $(Pipeline.Workspace)/manifests/deployment.yml
+            $(Pipeline.Workspace)/manifests/service.yml
+          #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
                 #imagePullSecrets: '$(acrsecret)'
