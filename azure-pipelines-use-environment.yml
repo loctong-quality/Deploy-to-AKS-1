@@ -1,0 +1,92 @@
+# Tham khao tu https://www.youtube.com/watch?v=4Oa5HneTuKs
+# Deploy to Azure Kubernetes (AKS) from Azure DevOps with Azure Pipelines | Build LIVE with Me
+trigger:
+- none
+
+resources:
+- repo: self
+
+variables:
+  imageRepo: sampleapp
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        containerRegistry: 'K8SExamplesACR' # tạo trước từ Services connection
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/app/Dockerfile'
+        tags: |
+          $(tag)
+          latest
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/s/kubernetes' # $(Pipeline.Workspace)/s/ đường dẫn mặc định để copy files/folders
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+- stage: Deploy
+  displayName: Deploy to Dev
+  dependsOn: Build
+  variables:
+    acrsecret: acrloctongauth
+    acrdevurl: 'acrloctong.azurecr.io'
+    # replicaNo: 3
+  jobs:
+    - job: Deploy
+    # - deployment: Deploy
+      displayName: Deploy to AKS
+      #environment: 'k8sdev.default'
+      pool: 
+        vmImage: ubuntu-latest
+      # strategy:
+      #   runOnce:
+      #     deploy:
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'manifests'
+          targetPath: '$(Pipeline.Workspace)/manifests'
+      - task: KubernetesManifest@0
+        inputs:
+          action: 'createSecret'
+          kubernetesServiceConnection: 'K8S_Example_cluster-default' # tạo kết nối đến aks cluster (lưu ý dùng kubeconfig file get từ local rồi copy lên)
+          namespace: 'default'
+          secretType: 'dockerRegistry'
+          secretName: '$(acrsecret)' # lưu token acr vô secret
+          dockerRegistryEndpoint: 'K8SExamplesACR'
+            # - task: replacetokens@3
+            #   displayName: Replace Tokens
+            #   inputs:
+            #     rootDirectory: '$(Pipeline.Workspace)/manifests/'
+            #     targetFiles: 'deployment.yml'
+            #     encoding: 'auto'
+            #     writeBOM: true
+            #     actionOnMissing: 'warn'
+            #     keepToken: false
+            #     tokenPrefix: '#'
+            #     tokenSuffix: '#'
+            #     useLegacyPattern: false
+            #     enableTransforms: false
+            #     enableTelemetry: true
+      - task: KubernetesManifest@0
+        inputs:
+          action: 'deploy'
+          kubernetesServiceConnection: 'K8S_Example_cluster-default'
+          namespace: 'default'
+          manifests: |
+            $(Pipeline.Workspace)/manifests/deployment.yml
+            $(Pipeline.Workspace)/manifests/service.yml
+          #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
+          imagePullSecrets: '$(acrsecret)' # phải có ref tới cái này PODs mới donwload được images
