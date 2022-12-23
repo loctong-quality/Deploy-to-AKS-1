@@ -88,5 +88,5 @@ stages:
           manifests: |
             $(Pipeline.Workspace)/manifests/deployment.yml
             $(Pipeline.Workspace)/manifests/service.yml
-          #containers: '$(acrdevurl)/$(imageRepo):$(tag)'
+          containers: '$(acrdevurl)/$(imageRepo):$(tag)'
           imagePullSecrets: '$(acrsecret)' # phải có ref tới cái này PODs mới donwload được images
