@@ -61,6 +61,7 @@ stages:
             - task: KubernetesManifest@0
               inputs:
                 action: 'createSecret'
+                kubernetesServiceConnection: 'K8S_Example_cluster-default'
                 namespace: 'default'
                 secretType: 'dockerRegistry'
                 secretName: '$(acrsecret)'
@@ -82,6 +83,7 @@ stages:
             - task: KubernetesManifest@0
               inputs:
                 action: 'deploy'
+                kubernetesServiceConnection: 'K8S_Example_cluster-default'
                 namespace: 'default'
                 manifests: |
                   $(Pipeline.Workspace)/manifests/deployment.yml
